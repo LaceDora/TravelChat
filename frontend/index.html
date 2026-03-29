@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel SE Asia</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Material Symbols -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#13a4ec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101c22",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a262d",
+            },
+            fontFamily: {
+              display: ["Plus Jakarta Sans", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+<!-- createChat({
+        webhookUrl: 'http://localhost:5678/webhook/77b5c6a2-50ba-439f-9a9b-2c800afe38e8/chat',
+        webhookConfig: {
+            method: 'POST'
+        },
+        showWelcomeScreen: false,
+        renderMarkdown: false, // Disable markdown rendering để tránh lỗi parse
+        // Đảm bảo content ở đây là String thuần túy
+        initialMessages: [
+            {
+                type: 'text',
+                role: 'assistant',
+                content: 'Chào bạn! Tôi là Trợ lý Du lịch AI, tôi có thể giúp gì cho bạn?'
+            }
+        ],
+        i18n: {
+            en: {
+                title: 'Trợ lý Du lịch AI',
+                assistantName: 'Trợ lý Du lịch AI',
+                userName: 'Khách hàng',
+                placeholder: 'Nhập câu hỏi của bạn...',
+            }
+        },
+        responses: {
+            text: (data) => {
+                // Bước kiểm tra quan trọng nhất để tránh lỗi "should be a String"
+                if (typeof data === 'string') return data;
+                
+                // Nếu data là null hoặc undefined
+                if (data == null) return "Không có phản hồi từ hệ thống.";
+                
+                // Nếu n8n trả về Object chứa field 'output' (phổ biến với AI Agent)
+                if (data && typeof data === 'object') {
+                    if (Array.isArray(data) && data.length > 0) {
+                        const firstItem = data[0];
+                        if (typeof firstItem === 'string') return firstItem;
+                        return String(firstItem?.output || JSON.stringify(firstItem));
+                    }
+                    if (typeof data.output === 'string') return data.output;
+                    return String(data.output || JSON.stringify(data));
+                }
+                
+                // Chuyển mọi thứ khác sang String để an toàn cho UI
+                return String(data || "Không có phản hồi từ hệ thống.");
+            }
+        }
+    }); -->

@@ -1,0 +1,167 @@
+/* ===== HERO ===== */
+.hero {
+  height: 80vh;
+  background: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e")
+    center/cover no-repeat;
+  position: relative;
+}
+
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 80px;
+}
+
+.hero-overlay h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+/* ===== SECTION ===== */
+.section {
+  padding: 70px 0;
+}
+
+.section.gray {
+  background: #f5f5f5;
+}
+
+.section-title {
+  font-size: 32px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+/* ===== CULTURE ===== */
+.culture-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.culture-card {
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  text-align: center;
+}
+
+.culture-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.culture-card h3 {
+  padding: 15px;
+}
+
+/* ===== DISCOVER ===== */
+.discover-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 20px;
+}
+
+.discover-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.discover-item.large {
+  grid-row: span 2;
+}
+
+.discover-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+/* ===== CTA ===== */
+.cta {
+  background: #0b5ed7;
+  color: #fff;
+  text-align: center;
+  padding: 70px 20px;
+}
+
+.cta button {
+  margin-top: 20px;
+  padding: 12px 28px;
+  border: none;
+  background: #ffc107;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* LOCATION */
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.location-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.location-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.location-card h3 {
+  margin: 10px;
+}
+
+.location-card p {
+  margin: 0 10px 15px;
+  color: #666;
+}
+
+/* BLOG */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.blog-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.blog-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.blog-card h3 {
+  margin: 10px;
+}
+
+.blog-card p {
+  margin: 0 10px 15px;
+  color: #666;
+}
