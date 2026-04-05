@@ -20,6 +20,7 @@ export default function BookingTour() {
       .then((res) => res.json())
       .then((data) => {
         setTour(data);
+        console.log("tour object", data);
 
         const dep = data.departures.find(
           (d: any) => String(d.id) === String(departureId),
@@ -73,10 +74,22 @@ export default function BookingTour() {
       const data = await res.json();
 
       if (res.ok) {
+        // Truyền đủ params sang trang Payment
         navigate(
-          `/payment?bookingId=${data.id}&tourName=${encodeURIComponent(
-            tour.name,
-          )}&price=${total}`,
+          (() => {
+            // Fallback: lấy tourId từ tour.id, nếu không có thì lấy từ biến tourId
+            let realTourId =
+              tour && tour.id ? tour.id.toString() : tourId || "";
+            const params = new URLSearchParams({
+              bookingId: data.id,
+              tourId: realTourId,
+              tourName: tour.name || "",
+              price: total.toString(),
+              people: people.toString(),
+              date: departure.departure_date || "",
+            });
+            return `/payment?${params.toString()}`;
+          })(),
         );
       } else {
         alert(data.message || "Lỗi đặt tour");
@@ -122,11 +135,11 @@ export default function BookingTour() {
             {discount > 0 ? (
               <>
                 <p className="text-2xl font-bold text-red-600">
-                  {finalPrice.toLocaleString()} đ
+                  {finalPrice.toLocaleString()} VND
                 </p>
 
                 <p className="text-gray-400 line-through">
-                  {price.toLocaleString()} đ
+                  {price.toLocaleString()} VND
                 </p>
 
                 <span className="bg-red-100 text-red-600 px-2 py-1 text-sm rounded">
@@ -135,7 +148,7 @@ export default function BookingTour() {
               </>
             ) : (
               <p className="text-2xl font-bold text-red-600">
-                {price.toLocaleString()} đ
+                {price.toLocaleString()} VND
               </p>
             )}
 
@@ -157,7 +170,7 @@ export default function BookingTour() {
 
           {/* TOTAL */}
           <div className="mb-6 text-lg font-semibold text-blue-600">
-            Tổng tiền: {total.toLocaleString()} đ
+            Tổng tiền: {total.toLocaleString()} VND
           </div>
 
           {/* BUTTON */}

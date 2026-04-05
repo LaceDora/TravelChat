@@ -11,7 +11,9 @@ import Register from "../pages/auth/Register";
 import Profile from "../pages/profile/Profile";
 
 // Blog
+
 import BlogDetail from "../pages/blog/BlogDetail";
+import BlogList from "../pages/blog/BlogList";
 
 // Locations
 import LocationPage from "../pages/locations/LocationPage";
@@ -41,7 +43,8 @@ function AppRoutes() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
 
-        {/* Blog detail (từ Home) */}
+        {/* Blog list & detail (từ Home) */}
+        <Route path="/blogs" element={<BlogList />} />
         <Route path="/blogs/:id" element={<BlogDetail />} />
 
         {/* Locations */}

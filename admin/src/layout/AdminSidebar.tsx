@@ -13,7 +13,6 @@ const AdminSidebar = () => {
         </NavLink>
 
         <NavLink to="/admin/users">Users</NavLink>
-        <NavLink to="/admin/explores">Explores</NavLink>
         <NavLink to="/admin/locations">Locations</NavLink>
         <NavLink to="/admin/hotels">Hotels</NavLink>
         <NavLink to="/admin/restaurants">Restaurants</NavLink>

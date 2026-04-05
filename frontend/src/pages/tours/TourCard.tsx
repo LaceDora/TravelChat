@@ -83,7 +83,7 @@ export default function TourCard({ tour }: TourCardProps) {
             <span className="text-xs text-gray-500 block">Giá từ</span>
             <span className="text-xl font-bold text-red-600">
               {tour.price ? Number(tour.price).toLocaleString() : "0"}{" "}
-              <span className="text-base font-normal">đ</span>
+              <span className="text-base font-normal">VND</span>
             </span>
           </div>
 

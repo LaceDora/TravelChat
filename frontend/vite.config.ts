@@ -13,10 +13,11 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   server: {
-    // allow connections from the ngrok public hostname and enable HMR over the tunnel
+    port: 5173,
     host: true,
     cors: true,
-    // replace below with your current ngrok URL if it changes
-    origin: "https://claretta-chequered-shavonda.ngrok-free.dev",
+    proxy: {
+      "/webhook": "http://localhost:5678",
+    },
   },
 });

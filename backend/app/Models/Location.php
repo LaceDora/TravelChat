@@ -11,7 +11,6 @@ class Location extends Model
     protected $fillable = [
         'country_id',
         'name',
-        'type',
         'description',
         'content',
         'address',

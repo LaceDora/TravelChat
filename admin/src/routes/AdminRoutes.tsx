@@ -51,6 +51,10 @@ import BlogList from "../pages/blogs/BlogList";
 import BlogCreate from "../pages/blogs/BlogCreate";
 import BlogEdit from "../pages/blogs/BlogEdit";
 
+// Bookings
+import BookingList from "../pages/bookings/BookingList";
+import BookingDetail from "../pages/bookings/BookingDetail";
+
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -128,6 +132,9 @@ const AdminRoutes = () => {
         <Route path="blogs" element={<BlogList />} />
         <Route path="blogs/create" element={<BlogCreate />} />
         <Route path="blogs/edit/:id" element={<BlogEdit />} />
+        {/* BOOKINGS */}
+        <Route path="bookings" element={<BookingList />} />
+        <Route path="bookings/:id" element={<BookingDetail />} />
       </Route>
 
       {/* FALLBACK */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { apiPost } from "../../service/api";
 
 export default function ServiceBooking() {
   const { id, type } = useParams();
@@ -71,32 +72,37 @@ export default function ServiceBooking() {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          service_type: type, // hotel | restaurant
-          service_id: id,
-          booking_date: date,
-          note,
-          item_id: itemId,
-          quantity,
-          people,
-          total_price: total,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.message || "Đặt dịch vụ thất bại. Vui lòng thử lại.");
-      } else {
-        setSuccess("Đặt dịch vụ thành công!");
-        setTimeout(() => navigate("/profile/1"), 1200);
+      // Lấy user từ localStorage
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      if (!user.id) {
+        setError("Bạn cần đăng nhập để đặt dịch vụ.");
+        setLoading(false);
+        return;
       }
-    } catch (e) {
-      setError("Có lỗi xảy ra. Vui lòng thử lại.");
+      const body = {
+        booking_type: type, // hotel | restaurant
+        target_id: id,
+        booking_date: date,
+        note,
+        item_id: itemId,
+        quantity,
+        people,
+        total_amount: total,
+        user_id: user.id,
+      };
+      const data = await apiPost<any>("/bookings", body);
+      const booking = data.data || data.booking || data;
+      navigate(
+        `/payment?bookingId=${booking.id}` +
+          `&price=${booking.total_price || total}` +
+          `&people=${people}` +
+          `&date=${date}` +
+          `&serviceType=${type}` +
+          `&serviceId=${id}` +
+          `&itemId=${itemId || ""}`,
+      );
+    } catch (e: any) {
+      setError(e.message || "Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }

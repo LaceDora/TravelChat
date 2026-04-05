@@ -35,7 +35,6 @@ class LocationController extends Controller
         return response()->json([
             'id' => $location->id,
             'name' => $location->name,
-            'type' => $location->type,
 
             'description' => $location->description,
             'content' => $location->content,

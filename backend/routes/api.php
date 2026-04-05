@@ -13,7 +13,6 @@ use App\Http\Controllers\Admin\AdminAuthController;
 
 use App\Http\Controllers\Api\{
     CountryController,
-    ExploreController,
     LocationController,
     HotelController,
     RestaurantController,
@@ -28,8 +27,6 @@ use App\Http\Controllers\Api\{
 
 use App\Http\Controllers\Admin\{
     UserController as AdminUserController,
-    CategoryController,
-    ExploreController as AdminExploreController,
     LocationController as AdminLocationController,
     HotelController as AdminHotelController,
     HotelRoomController as AdminHotelRoomController,
@@ -77,12 +74,6 @@ Route::prefix('admin')->group(function () {
 
     Route::apiResource('users', AdminUserController::class);
 
-    Route::apiResource('categories', CategoryController::class)
-        ->except(['show']);
-
-    Route::apiResource('explores', AdminExploreController::class)
-        ->except(['show']);
-
     Route::apiResource('locations', AdminLocationController::class);
 
     Route::apiResource('hotels', AdminHotelController::class);
@@ -92,6 +83,11 @@ Route::prefix('admin')->group(function () {
     Route::apiResource('tours', AdminTourController::class);
 
     Route::apiResource('blogs', AdminBlogController::class);
+
+    // BOOKINGS
+    Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index']);
+    Route::get('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'show']);
+    Route::patch('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'update']);
 
 
     /*
@@ -156,9 +152,6 @@ Route::delete('tour-schedules/{id}', [AdminTourScheduleController::class, 'destr
 */
 
 Route::apiResource('countries', CountryController::class)
-    ->only(['index','show']);
-
-Route::apiResource('explores', ExploreController::class)
     ->only(['index','show']);
 
 Route::apiResource('locations', LocationController::class)

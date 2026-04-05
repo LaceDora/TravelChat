@@ -42,7 +42,7 @@ export default function LocationDetail() {
   const [showDirection, setShowDirection] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  /* ================= LOAD LOCATION ================= */
+  // Fetch location data
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/api/locations/${id}`)
       .then((r) => r.json())
@@ -52,49 +52,16 @@ export default function LocationDetail() {
       });
   }, [id]);
 
-  // Lấy vị trí user chỉ khi bấm chỉ đường
-  useEffect(() => {
-    if (!showDirection) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserPos([pos.coords.latitude, pos.coords.longitude]);
-      },
-      () => alert("Không lấy được vị trí của bạn"),
-    );
-  }, [showDirection]);
-
-  // Lấy route khi showDirection và có userPos
-  useEffect(() => {
-    if (!showDirection || !userPos || !data?.lat || !data?.lng) return;
-
-    fetch(`https://api.openrouteservice.org/v2/directions/${mode}/geojson`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization:
-          "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjIzYzZlZThmOWQ3MzRlMGVhODc3YzAyZTdiZDFkNTUyIiwiaCI6Im11cm11cjY0In0=",
-      },
-      body: JSON.stringify({
-        coordinates: [
-          [userPos[1], userPos[0]],
-          [Number(data.lng), Number(data.lat)],
-        ],
-      }),
-    })
-      .then((r) => r.json())
-      .then((r) => {
-        const feature = r.features[0];
-
-        const coords = feature.geometry.coordinates.map((c: number[]) => [
-          c[1],
-          c[0],
-        ]);
-
-        setRoute(coords);
-        setDistance(feature.properties.summary.distance / 1000);
-        setDuration(feature.properties.summary.duration / 60);
-      });
-  }, [showDirection, userPos, data, mode]);
+  // Format date helper
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   if (loading) return <p className="text-center py-20">Loading...</p>;
   if (!data) return <p className="text-center py-20">Not found</p>;
@@ -112,8 +79,72 @@ export default function LocationDetail() {
         ]}
       />
 
-      <h1 className="text-3xl font-bold mb-4">{data.name}</h1>
-      <p className="text-gray-700 mb-6">{data.description}</p>
+      {/* Hình ảnh nổi bật */}
+      {data.image_url && (
+        <div className="mb-6 w-full max-h-[400px] rounded-2xl overflow-hidden flex justify-center">
+          <img
+            src={data.image_url}
+            alt={data.name}
+            className="object-cover w-full max-h-[400px]"
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
+        <h1 className="text-3xl font-bold ">{data.name}</h1>
+        <div className="flex flex-wrap gap-3 items-center text-sm text-gray-500">
+          {data.country?.name && (
+            <span className="px-2 py-1 bg-gray-100 rounded">
+              Quốc gia: <b>{data.country.name}</b>
+            </span>
+          )}
+          {data.views_count !== undefined && (
+            <span className="px-2 py-1 bg-gray-100 rounded">
+              👁 {data.views_count} lượt xem
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Địa chỉ, tỉnh */}
+      {(data.address || data.province) && (
+        <div className="mb-2 text-gray-700">
+          {data.address && <span>📍 {data.address}</span>}
+          {data.province && (
+            <span>
+              {data.address ? ", " : "📍 "}
+              {data.province}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Ngày tạo, cập nhật */}
+      {(data.created_at || data.updated_at) && (
+        <div className="mb-2 text-xs text-gray-400">
+          {data.created_at && (
+            <span>Ngày tạo: {formatDate(data.created_at)}</span>
+          )}
+          {data.updated_at && (
+            <span className="ml-4">
+              Cập nhật: {formatDate(data.updated_at)}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Mô tả ngắn */}
+      {data.description && (
+        <p className="text-gray-700 mb-4">{data.description}</p>
+      )}
+
+      {/* Nội dung chi tiết (HTML) */}
+      {data.content && (
+        <div
+          className="prose max-w-none mb-6"
+          dangerouslySetInnerHTML={{ __html: data.content }}
+        />
+      )}
 
       {/* ================= NÚT CHỈ ĐƯỜNG ================= */}
       {!showDirection && (
@@ -166,7 +197,7 @@ export default function LocationDetail() {
           {/* Hiện user, route, fitbounds chỉ khi showDirection */}
           {showDirection && userPos && (
             <Marker position={userPos} icon={getIconByType("user")}>
-              <Popup>Vị trí của bạn</Popup>
+              \<Popup>Vị trí của bạn</Popup>
             </Marker>
           )}
 

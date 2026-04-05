@@ -2,7 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/jpeg/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Travel SE Asia</title>
 
@@ -52,53 +52,62 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
 
-<!-- createChat({
-        webhookUrl: 'http://localhost:5678/webhook/77b5c6a2-50ba-439f-9a9b-2c800afe38e8/chat',
+    <!-- n8n Chat Widget CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css"
+      rel="stylesheet"
+    />
+
+    <!-- Override n8n Chat Colors - Premium Professional Version -->
+    <style>
+      :root {
+        --chat--color-primary: #13a4ec !important;
+        --chat--toggle--background: #13a4ec !important;
+        --chat--header--background: linear-gradient(
+          135deg,
+          #13a4ec 0%,
+          #0891d8 100%
+        ) !important;
+        --chat--message--user--background: #13a4ec !important;
+      }
+      /* Force input visibility */
+      .n8n-chat .chat-input {
+        display: flex !important;
+        visibility: visible !important;
+        border-top: 1px solid #eee !important;
+      }
+      /* Style headers */
+      .n8n-chat .chat-header {
+        padding: 15px 20px !important;
+      }
+      /* Hide n8n branding only if it doesn't hide input */
+      .n8n-chat .chat-footer-branding {
+        display: none !important;
+      }
+    </style>
+
+    <!-- n8n Chat Widget Initialization -->
+    <script type="module">
+      import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js";
+
+      createChat({
+        webhookUrl:
+          "http://localhost:5678/webhook/77b5c6a2-50ba-439f-9a9b-2c800afe38e8/chat",
         webhookConfig: {
-            method: 'POST'
+          method: "POST",
         },
-        showWelcomeScreen: false,
-        renderMarkdown: false, // Disable markdown rendering để tránh lỗi parse
-        // Đảm bảo content ở đây là String thuần túy
         initialMessages: [
-            {
-                type: 'text',
-                role: 'assistant',
-                content: 'Chào bạn! Tôi là Trợ lý Du lịch AI, tôi có thể giúp gì cho bạn?'
-            }
+          "Xin chào! 👋 Tôi là chuyên viên tư vấn từ Travel SE Asia. Rất vui được hỗ trợ bạn lên kế hoạch cho chuyến đi mơ ước. Bạn đang quan tâm đến tour du lịch hay dịch vụ nào của chúng tôi ạ?",
         ],
         i18n: {
-            en: {
-                title: 'Trợ lý Du lịch AI',
-                assistantName: 'Trợ lý Du lịch AI',
-                userName: 'Khách hàng',
-                placeholder: 'Nhập câu hỏi của bạn...',
-            }
+          en: {
+            title: "✈️ Trợ lý Du lịch SE Asia",
+            subtitle: "Chuyên viên tư vấn hành trình 24/7",
+            inputPlaceholder: "Nhập yêu cầu tư vấn của bạn...",
+          },
         },
-        responses: {
-            text: (data) => {
-                // Bước kiểm tra quan trọng nhất để tránh lỗi "should be a String"
-                if (typeof data === 'string') return data;
-                
-                // Nếu data là null hoặc undefined
-                if (data == null) return "Không có phản hồi từ hệ thống.";
-                
-                // Nếu n8n trả về Object chứa field 'output' (phổ biến với AI Agent)
-                if (data && typeof data === 'object') {
-                    if (Array.isArray(data) && data.length > 0) {
-                        const firstItem = data[0];
-                        if (typeof firstItem === 'string') return firstItem;
-                        return String(firstItem?.output || JSON.stringify(firstItem));
-                    }
-                    if (typeof data.output === 'string') return data.output;
-                    return String(data.output || JSON.stringify(data));
-                }
-                
-                // Chuyển mọi thứ khác sang String để an toàn cho UI
-                return String(data || "Không có phản hồi từ hệ thống.");
-            }
-        }
-    }); -->
+      });
+    </script>
+  </body>
+</html>

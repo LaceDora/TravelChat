@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { apiGet, apiPost } from "../../service/api";
 
 interface Country {
   id: number;
@@ -20,13 +22,11 @@ export default function Register() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/countries")
-      .then((res) => res.json())
+    apiGet<Country[]>("/countries")
       .then((data) => setCountries(data))
-      .catch(() => console.error("Could not load countries"));
+      .catch(() => toast.error("Không thể tải danh sách quốc gia"));
   }, []);
 
   const handleChange = (
@@ -43,45 +43,32 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     if (!form.agree) {
-      setError("You must agree to the terms");
+      toast.error("Vui lòng đồng ý với các điều khoản");
       return;
     }
 
     if (form.password !== form.password_confirmation) {
-      setError("Passwords do not match");
+      toast.error("Mật khẩu xác nhận không khớp");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          password_confirmation: form.password_confirmation,
-          country_id: Number(form.country_id), // ⭐ QUAN TRỌNG
-        }),
+      await apiPost("/register", {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        password_confirmation: form.password_confirmation,
+        country_id: Number(form.country_id),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Registration failed");
-        return;
-      }
-
+      toast.success("Đăng ký thành công!");
       navigate("/login");
-    } catch {
-      setError("Could not connect to server");
+    } catch (err: any) {
+      toast.error(err.message || "Không thể kết nối tới máy chủ");
     } finally {
       setLoading(false);
     }
@@ -220,8 +207,6 @@ export default function Register() {
                 </span>
               </span>
             </label>
-
-            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             {/* SUBMIT */}
             <button

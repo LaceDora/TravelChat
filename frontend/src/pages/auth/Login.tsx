@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { apiPost } from "../../service/api";
+import GoogleLoginButton from "../../components/GoogleLoginButton";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,7 +14,20 @@ export default function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+
+  // Listen for Google OAuth popup callback
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === "GOOGLE_LOGIN_SUCCESS" && event.data.user) {
+        // Save user and redirect
+        localStorage.setItem("user", JSON.stringify(event.data.user));
+        navigate(`/profile/${event.data.user.id}`);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -22,41 +38,24 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      // ❌ Login thất bại
-      if (!data.status) {
-        setError(data.message || "Email hoặc mật khẩu không đúng");
-        return;
-      }
-
-      // ❌ Thiếu user
-      if (!data.user || !data.user.id) {
-        setError("Không nhận được thông tin người dùng");
-        return;
-      }
+      const data = await apiPost<any>("/login", form);
 
       // ✅ Thành công
       localStorage.setItem("user", JSON.stringify(data.user));
+      toast.success("Đăng nhập thành công!");
       navigate(`/profile/${data.user.id}`);
-    } catch (err) {
-      setError("Không thể kết nối tới server");
+    } catch (err: any) {
+      toast.error(err.message || "Không thể kết nối tới máy chủ");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleError = (errorMsg: string) => {
+    toast.error(errorMsg);
   };
 
   return (
@@ -100,8 +99,6 @@ export default function Login() {
             </button>
           </div>
 
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
           <button
             type="submit"
             disabled={loading}
@@ -111,8 +108,18 @@ export default function Login() {
           </button>
         </form>
 
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <span className="px-4 text-sm text-gray-500">or continue with</span>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        {/* Google Sign-In Button */}
+        <GoogleLoginButton onError={handleGoogleError} />
+
         <p className="text-center mt-6 text-sm">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link to="/register" className="text-cyan-500 font-medium">
             Sign Up
           </Link>

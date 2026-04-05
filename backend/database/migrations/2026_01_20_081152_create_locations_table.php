@@ -16,7 +16,6 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('name');
-            $table->string('type');
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
             $table->string('address')->nullable();
