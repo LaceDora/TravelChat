@@ -9,6 +9,19 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    private function buildVnpayHashData(array $inputData): string
+    {
+        ksort($inputData);
+
+        $hashData = [];
+
+        foreach ($inputData as $key => $value) {
+            $hashData[] = urlencode((string) $key) . '=' . urlencode((string) $value);
+        }
+
+        return implode('&', $hashData);
+    }
+
     // =========================
     // 1. TẠO LINK THANH TOÁN
     // =========================
@@ -48,17 +61,13 @@ class PaymentController extends Controller
             "vnp_CreateDate" => date('YmdHis'),
         ];
 
-        ksort($inputData);
-
-        $hashData = "";
+        $hashData = $this->buildVnpayHashData($inputData);
         $query = "";
 
         foreach ($inputData as $key => $value) {
-            $hashData .= $key . "=" . $value . "&";
             $query    .= urlencode($key) . "=" . urlencode($value) . "&";
         }
 
-        $hashData = rtrim($hashData, "&");
         $query    = rtrim($query, "&");
 
         $vnp_SecureHash = hash_hmac("sha512", $hashData, $vnp_HashSecret);
@@ -81,23 +90,19 @@ class PaymentController extends Controller
         $inputData = [];
 
         foreach ($request->all() as $key => $value) {
-            if (substr($key, 0, 4) === "vnp_" && $key !== "vnp_SecureHash") {
+            if (
+                substr($key, 0, 4) === "vnp_"
+                && !in_array($key, ["vnp_SecureHash", "vnp_SecureHashType"], true)
+            ) {
                 $inputData[$key] = $value;
             }
         }
 
-        ksort($inputData);
-
-        $hashData = "";
-        foreach ($inputData as $key => $value) {
-            $hashData .= $key . "=" . $value . "&";
-        }
-        $hashData = rtrim($hashData, "&");
-
+        $hashData = $this->buildVnpayHashData($inputData);
         $checkHash = hash_hmac("sha512", $hashData, $vnp_HashSecret);
 
         // Kiểm tra chữ ký
-        if ($checkHash !== $request->vnp_SecureHash) {
+        if (!hash_equals($checkHash, (string) $request->vnp_SecureHash)) {
             return redirect('http://localhost:5173/payment-success?status=error');
         }
 
@@ -135,22 +140,18 @@ class PaymentController extends Controller
         $inputData = [];
 
         foreach ($request->all() as $key => $value) {
-            if (substr($key, 0, 4) === "vnp_" && $key !== "vnp_SecureHash") {
+            if (
+                substr($key, 0, 4) === "vnp_"
+                && !in_array($key, ["vnp_SecureHash", "vnp_SecureHashType"], true)
+            ) {
                 $inputData[$key] = $value;
             }
         }
 
-        ksort($inputData);
-
-        $hashData = "";
-        foreach ($inputData as $key => $value) {
-            $hashData .= $key . "=" . $value . "&";
-        }
-        $hashData = rtrim($hashData, "&");
-
+        $hashData = $this->buildVnpayHashData($inputData);
         $checkHash = hash_hmac("sha512", $hashData, $vnp_HashSecret);
 
-        if ($checkHash !== $request->vnp_SecureHash) {
+        if (!hash_equals($checkHash, (string) $request->vnp_SecureHash)) {
             return response()->json(['RspCode' => '97', 'Message' => 'Invalid signature']);
         }
 

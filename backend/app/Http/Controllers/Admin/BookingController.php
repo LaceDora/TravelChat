@@ -36,4 +36,14 @@ class BookingController extends Controller
         $booking->save();
         return response()->json($booking);
     }
+
+    public function destroy($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->delete();
+
+        return response()->json([
+            'message' => 'Xóa booking thành công',
+        ]);
+    }
 }

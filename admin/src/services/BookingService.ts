@@ -39,3 +39,11 @@ export const updateBookingStatus = async (id: number, status: string) => {
   if (!res.ok) throw new Error("Lỗi khi cập nhật trạng thái booking");
   return res.json();
 };
+
+export const deleteBooking = async (id: number) => {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Lỗi khi xóa booking");
+  return res.json();
+};

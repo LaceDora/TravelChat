@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react"; // Thêm useCallback
 import Breadcrumb from "../../components/common/Breadcrumb";
 
 import {
@@ -13,17 +13,35 @@ import {
 import "leaflet/dist/leaflet.css";
 
 import { getIconByType } from "../../components/map/mapIcons";
+import { Eye, Globe } from "lucide-react";
+
 // ================= ICON =================
 const defaultIcon = getIconByType("location");
 
-/* ================= AUTO ZOOM ================= */
-function FitBounds({ points }: { points: [number, number][] }) {
+/* ================= CỨU TINH MAP (FIX MẢNG XÁM) ================= */
+function MapHandler({
+  points,
+  showDirection,
+}: {
+  points: [number, number][];
+  showDirection: boolean;
+}) {
   const map = useMap();
+
+  // Fix lỗi mảng xám khi map hiển thị/thay đổi kích thước
   useEffect(() => {
-    if (points.length >= 2) {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+  }, [map, showDirection]);
+
+  // Tự động căn chỉnh khung hình khi có lộ trình
+  useEffect(() => {
+    if (showDirection && points.length >= 2) {
       map.fitBounds(points, { padding: [50, 50] });
     }
-  }, [points]);
+  }, [points, map, showDirection]);
+
   return null;
 }
 
@@ -52,7 +70,60 @@ export default function LocationDetail() {
       });
   }, [id]);
 
-  // Format date helper
+  // Logic lấy đường đi thực tế từ API OSRM
+  const fetchRoute = useCallback(
+    async (
+      start: [number, number],
+      end: [number, number],
+      travelMode: TravelMode,
+    ) => {
+      const osrmMode =
+        travelMode === "foot-walking"
+          ? "foot"
+          : travelMode === "driving-car"
+            ? "car"
+            : "bicycle";
+      const url = `https://router.project-osrm.org/route/v1/${osrmMode}/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+
+      try {
+        const res = await fetch(url);
+        const result = await res.json();
+        if (result.routes && result.routes.length > 0) {
+          const r = result.routes[0];
+          setRoute(r.geometry.coordinates.map((c: any) => [c[1], c[0]]));
+          setDistance(r.distance / 1000); // km
+          setDuration(r.duration / 60); // phút
+        }
+      } catch (err) {
+        console.error("Lỗi lấy đường đi:", err);
+      }
+    },
+    [],
+  );
+
+  // Xử lý khi bấm nút Chỉ đường
+  const handleGetDirection = () => {
+    if (!navigator.geolocation)
+      return alert("Trình duyệt không hỗ trợ định vị");
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const uPos: [number, number] = [
+        pos.coords.latitude,
+        pos.coords.longitude,
+      ];
+      setUserPos(uPos);
+      setShowDirection(true);
+      if (data) fetchRoute(uPos, [Number(data.lat), Number(data.lng)], mode);
+    });
+  };
+
+  // Cập nhật lại đường đi khi đổi phương tiện
+  useEffect(() => {
+    if (showDirection && userPos && data) {
+      fetchRoute(userPos, [Number(data.lat), Number(data.lng)], mode);
+    }
+  }, [mode, showDirection, userPos, data, fetchRoute]);
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     const d = new Date(dateStr);
@@ -90,17 +161,26 @@ export default function LocationDetail() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
-        <h1 className="text-3xl font-bold ">{data.name}</h1>
-        <div className="flex flex-wrap gap-3 items-center text-sm text-gray-500">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+        <h1 className="text-3xl font-extrabold text-slate-900">{data.name}</h1>
+
+        <div className="flex flex-wrap gap-3 items-center text-sm">
+          {/* Quốc gia */}
           {data.country?.name && (
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              Quốc gia: <b>{data.country.name}</b>
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-medium">
+              <Globe size={14} className="text-blue-500" />
+              Quốc gia: <b className="text-slate-900">{data.country.name}</b>
             </span>
           )}
+
+          {/* Lượt xem - Thay icon 👁 bằng Eye icon */}
           {data.views_count !== undefined && (
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              👁 {data.views_count} lượt xem
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-medium">
+              <Eye size={14} className="text-slate-500" />
+              <b className="text-slate-900">
+                {data.views_count.toLocaleString()}
+              </b>{" "}
+              lượt xem
             </span>
           )}
         </div>
@@ -112,33 +192,26 @@ export default function LocationDetail() {
           {data.address && <span>📍 {data.address}</span>}
           {data.province && (
             <span>
-              {data.address ? ", " : "📍 "}
-              {data.province}
+              {data.address ? ", " : "📍 "} {data.province}
             </span>
           )}
         </div>
       )}
 
       {/* Ngày tạo, cập nhật */}
-      {(data.created_at || data.updated_at) && (
-        <div className="mb-2 text-xs text-gray-400">
-          {data.created_at && (
-            <span>Ngày tạo: {formatDate(data.created_at)}</span>
-          )}
-          {data.updated_at && (
-            <span className="ml-4">
-              Cập nhật: {formatDate(data.updated_at)}
-            </span>
-          )}
-        </div>
-      )}
+      <div className="mb-2 text-xs text-gray-400">
+        {data.created_at && (
+          <span>Ngày tạo: {formatDate(data.created_at)}</span>
+        )}
+        {data.updated_at && (
+          <span className="ml-4">Cập nhật: {formatDate(data.updated_at)}</span>
+        )}
+      </div>
 
-      {/* Mô tả ngắn */}
+      {/* Mô tả & Nội dung */}
       {data.description && (
         <p className="text-gray-700 mb-4">{data.description}</p>
       )}
-
-      {/* Nội dung chi tiết (HTML) */}
       {data.content && (
         <div
           className="prose max-w-none mb-6"
@@ -149,8 +222,8 @@ export default function LocationDetail() {
       {/* ================= NÚT CHỈ ĐƯỜNG ================= */}
       {!showDirection && (
         <button
-          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          onClick={() => setShowDirection(true)}
+          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          onClick={handleGetDirection}
         >
           🧭 Chỉ đường đến đây
         </button>
@@ -168,9 +241,7 @@ export default function LocationDetail() {
               <button
                 key={m}
                 onClick={() => setMode(m as TravelMode)}
-                className={`px-4 py-2 rounded ${
-                  mode === m ? "bg-blue-600 text-white" : "bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded transition ${mode === m ? "bg-blue-600 text-white" : "bg-gray-200"}`}
               >
                 {label}
               </button>
@@ -185,28 +256,38 @@ export default function LocationDetail() {
         </>
       )}
 
-      {/* ================= MAP ================= */}
-      <div className="w-full h-[420px] rounded-2xl overflow-hidden mb-10">
-        <MapContainer center={[lat, lng]} zoom={13} style={{ height: "100%" }}>
+      {/* ================= MAP (ĐÃ FIX) ================= */}
+      <div className="w-full h-[450px] rounded-2xl overflow-hidden mb-10 shadow-inner border border-gray-200">
+        <MapContainer
+          center={[lat, lng]}
+          zoom={15}
+          style={{ height: "100%", width: "100%" }}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+          {/* Component xử lý fix mảng xám và auto zoom */}
+          <MapHandler
+            points={userPos ? [userPos, [lat, lng]] : []}
+            showDirection={showDirection}
+          />
 
           <Marker position={[lat, lng]} icon={defaultIcon}>
             <Popup>{data.name}</Popup>
           </Marker>
 
-          {/* Hiện user, route, fitbounds chỉ khi showDirection */}
           {showDirection && userPos && (
             <Marker position={userPos} icon={getIconByType("user")}>
-              \<Popup>Vị trí của bạn</Popup>
+              <Popup>Vị trí của bạn</Popup>
             </Marker>
           )}
 
           {showDirection && route.length > 0 && (
-            <Polyline positions={route} color="red" weight={5} />
-          )}
-
-          {showDirection && userPos && (
-            <FitBounds points={[userPos, [lat, lng]]} />
+            <Polyline
+              positions={route}
+              color="#2563eb"
+              weight={5}
+              opacity={0.7}
+            />
           )}
         </MapContainer>
       </div>
@@ -220,9 +301,13 @@ export default function LocationDetail() {
               <a
                 key={loc.id}
                 href={`/locations/${loc.id}`}
-                className="block rounded-xl overflow-hidden shadow hover:shadow-lg"
+                className="block rounded-xl overflow-hidden shadow hover:shadow-lg transition"
               >
-                <img src={loc.image_url} className="w-full h-40 object-cover" />
+                <img
+                  src={loc.image_url}
+                  className="w-full h-40 object-cover"
+                  alt={loc.name}
+                />
                 <div className="p-4">
                   <h3 className="font-semibold">{loc.name}</h3>
                   <p className="text-sm text-gray-500">{loc.address}</p>
@@ -247,6 +332,7 @@ export default function LocationDetail() {
                 <img
                   src={tour.image_url}
                   className="w-full h-40 object-cover"
+                  alt={tour.name}
                 />
                 <div className="p-4">
                   <h3 className="font-semibold">{tour.name}</h3>
@@ -266,9 +352,7 @@ export default function LocationDetail() {
       {(data.hotels?.length > 0 || data.restaurants?.length > 0) && (
         <>
           <h2 className="text-2xl font-bold mb-4">🛎 Dịch vụ gần đây</h2>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* HOTELS */}
             {data.hotels?.map((item: any) => (
               <a
                 key={`hotel-${item.id}`}
@@ -278,6 +362,7 @@ export default function LocationDetail() {
                 <img
                   src={item.image_url}
                   className="w-full h-40 object-cover"
+                  alt={item.name}
                 />
                 <div className="p-4">
                   <span className="text-xs text-blue-600 font-semibold">
@@ -288,8 +373,6 @@ export default function LocationDetail() {
                 </div>
               </a>
             ))}
-
-            {/* RESTAURANTS */}
             {data.restaurants?.map((item: any) => (
               <a
                 key={`restaurant-${item.id}`}
@@ -299,6 +382,7 @@ export default function LocationDetail() {
                 <img
                   src={item.image_url}
                   className="w-full h-40 object-cover"
+                  alt={item.name}
                 />
                 <div className="p-4">
                   <span className="text-xs text-green-600 font-semibold">

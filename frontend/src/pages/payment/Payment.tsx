@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { apiPost } from "../../service/api";
+import { apiGet, apiPost } from "../../service/api";
 import toast from "react-hot-toast";
 
 export default function Payment() {
@@ -11,7 +11,6 @@ export default function Payment() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Lấy dữ liệu từ query parameters
     const tourId = searchParams.get("tourId");
     const tourName = searchParams.get("tourName");
     const price = searchParams.get("price");
@@ -22,49 +21,90 @@ export default function Payment() {
     const serviceId = searchParams.get("serviceId");
     const itemId = searchParams.get("itemId");
 
-    // Nếu là tour
-    if (tourId && price && people && date) {
-      const data = {
-        type: "tour",
+    const fallbackFromParams = () => {
+      if (tourId && people && date) {
+        const data = {
+          type: "tour",
+          bookingId,
+          tourId,
+          name: tourName,
+          price: Number(price || 0),
+          people: Number(people),
+          date,
+        };
+        setBookingData(data);
+        return;
+      }
+
+      if (bookingId && people && date && serviceType && serviceId) {
+        const data = {
+          type: serviceType,
+          bookingId,
+          serviceId,
+          itemId,
+          price: Number(price || 0),
+          people: Number(people),
+          date,
+        };
+        setBookingData(data);
+        return;
+      }
+
+      console.warn("[Payment] Thiếu query params", {
         tourId,
-        price: Number(price),
-        people: Number(people),
+        price,
+        people,
         date,
         tourName,
-      };
-      setBookingData(data);
-      console.log("[Payment] bookingData (tour):", data);
-      return;
-    }
-
-    // Nếu là dịch vụ (hotel/restaurant)
-    if (bookingId && price && people && date && serviceType && serviceId) {
-      const data = {
-        type: serviceType,
         bookingId,
-        price: Number(price),
-        people: Number(people),
-        date,
+        serviceType,
         serviceId,
         itemId,
-      };
-      setBookingData(data);
-      console.log("[Payment] bookingData (service):", data);
-      return;
-    }
+      });
+    };
 
-    // Nếu không đủ params
-    console.warn("[Payment] Thiếu query params", {
-      tourId,
-      price,
-      people,
-      date,
-      tourName,
-      bookingId,
-      serviceType,
-      serviceId,
-      itemId,
-    });
+    const loadBookingData = async () => {
+      if (!bookingId) {
+        fallbackFromParams();
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      if (!user.id) {
+        fallbackFromParams();
+        return;
+      }
+
+      try {
+        const booking = await apiGet<any>(
+          `/bookings/${bookingId}?user_id=${user.id}`,
+        );
+        const resolvedBooking = booking.data ?? booking;
+
+        const data = {
+          bookingId,
+          type: resolvedBooking.booking_type || serviceType || "tour",
+          price: Number(resolvedBooking.total_amount ?? price ?? 0),
+          people: Number(resolvedBooking.quantity ?? people ?? 1),
+          date: String(resolvedBooking.booking_date ?? date ?? ""),
+          itemId,
+          serviceId: String(resolvedBooking.target_id ?? serviceId ?? ""),
+          name:
+            resolvedBooking.tour?.name ||
+            resolvedBooking.hotel?.name ||
+            resolvedBooking.restaurant?.name ||
+            tourName ||
+            "",
+        };
+
+        setBookingData(data);
+      } catch (error) {
+        fallbackFromParams();
+      }
+    };
+
+    loadBookingData();
   }, [searchParams]);
 
   const handleProcessPayment = () => {
@@ -147,12 +187,18 @@ export default function Payment() {
                 <div className="flex justify-between items-center pb-4 border-b border-gray-200">
                   <span className="text-gray-600">Tour:</span>
                   <span className="font-semibold text-gray-800">
-                    {bookingData.tourName}
+                    {bookingData.name || `Tour #${bookingData.tourId}`}
                   </span>
                 </div>
               </>
             ) : (
               <>
+                <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                  <span className="text-gray-600">Tên dịch vụ:</span>
+                  <span className="font-semibold text-gray-800">
+                    {bookingData.name || `Dịch vụ #${bookingData.serviceId}`}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center pb-4 border-b border-gray-200">
                   <span className="text-gray-600">Loại dịch vụ:</span>
                   <span className="font-semibold text-gray-800">

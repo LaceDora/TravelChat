@@ -9,19 +9,18 @@ class Tour extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'location_id',
-        'name',
-        'slug',
-        'days',
-        'transport',
-        'departure_location',
-        'description',
-        'content',
-        'combo_content',
-        'image_url',
-        'is_active',
-    ];
+        protected $fillable = [
+            'location_id',
+            'name',
+            'days',
+            'transport',
+            'departure_location',
+            'description',
+            'content',
+            'combo_content',
+            'image_url',
+            'is_active',
+        ];
 
     public function location()
     {

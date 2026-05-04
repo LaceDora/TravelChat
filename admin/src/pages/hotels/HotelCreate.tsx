@@ -71,19 +71,22 @@ export default function HotelCreate() {
   };
 
   return (
-    <div className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-semibold mb-6">Create Hotel</h1>
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Create Hotel</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* LOCATION */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-5"
+      >
+        {/* ĐỊA ĐIỂM */}
         <select
           name="location_id"
           value={form.location_id}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
         >
-          <option value="">Select Location</option>
+          <option value="">Chọn địa điểm</option>
 
           {locations.map((loc) => (
             <option key={loc.id} value={loc.id}>
@@ -92,121 +95,124 @@ export default function HotelCreate() {
           ))}
         </select>
 
-        {/* NAME */}
+        {/* TÊN KHÁCH SẠN */}
         <input
           name="name"
-          placeholder="Hotel Name"
+          placeholder="Tên khách sạn"
           value={form.name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
         />
 
-        {/* RATING */}
+        {/* ĐÁNH GIÁ */}
         <input
           name="rating"
-          placeholder="Rating (1 - 5)"
+          placeholder="Xếp hạng (1 - 5 sao)"
           value={form.rating}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
-        {/* PRICE */}
+        {/* GIÁ PHÒNG */}
         <input
           name="price_per_night"
-          placeholder="Price per night"
+          placeholder="Giá mỗi đêm"
           value={form.price_per_night}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
         />
 
-        {/* DISCOUNT */}
+        {/* GIẢM GIÁ */}
         <input
           name="discount_percent"
-          placeholder="Discount percent"
+          placeholder="Phần trăm giảm giá (%)"
           value={form.discount_percent}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
-        {/* ADDRESS */}
+        {/* ĐỊA CHỈ */}
         <input
           name="address"
-          placeholder="Address"
+          placeholder="Địa chỉ cụ thể"
           value={form.address}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
-        <label className="block font-medium mb-1">Image URL</label>
+        <label className="block mb-1.5 text-sm font-semibold text-gray-700">
+          Đường dẫn ảnh (URL)
+        </label>
         <input
           name="image_url"
-          placeholder="Image URL"
+          placeholder="Nhập link ảnh tại đây"
           value={form.image_url}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
         {form.image_url && (
           <div className="my-2 text-center">
             <img
               src={form.image_url}
-              alt="preview"
+              alt="xem trước"
               className="w-48 rounded shadow mx-auto"
             />
           </div>
         )}
 
-        {/* LAT */}
-        <input
-          name="lat"
-          placeholder="Latitude"
-          value={form.lat}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+        {/* TỌA ĐỘ */}
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            name="lat"
+            placeholder="Vĩ độ (Lat)"
+            value={form.lat}
+            onChange={handleChange}
+            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          />
 
-        {/* LNG */}
-        <input
-          name="lng"
-          placeholder="Longitude"
-          value={form.lng}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+          <input
+            name="lng"
+            placeholder="Kinh độ (Lng)"
+            value={form.lng}
+            onChange={handleChange}
+            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          />
+        </div>
 
-        {/* COMBO CONTENT */}
+        {/* NỘI DUNG COMBO */}
         <textarea
           name="combo_content"
-          placeholder="Combo Content"
+          placeholder="Nội dung gói Combo (nếu có)"
           value={form.combo_content}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
-        {/* DESCRIPTION */}
+        {/* MÔ TẢ */}
         <textarea
           name="description"
-          placeholder="Description"
+          placeholder="Mô tả khách sạn"
           value={form.description}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
         <div className="flex gap-3">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20"
           >
-            Create
+            Tạo mới
           </button>
 
           <button
             type="button"
             onClick={() => navigate("/admin/hotels")}
-            className="bg-gray-500 text-white px-4 py-2 rounded"
+            className="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-200 transition-colors"
           >
-            Cancel
+            Hủy bỏ
           </button>
         </div>
       </form>

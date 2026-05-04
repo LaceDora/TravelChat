@@ -155,11 +155,13 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 8,
     fontSize: 15,
     outline: "none",
-    background: "#f8fafc",
-    transition: "border 0.2s, box-shadow 0.2s",
-    boxShadow: "0 1px 2px rgba(60,60,120,0.04)",
+    color: "#1f2937",
+    background: "#ffffff",
+    transition: "all 0.2s ease-in-out",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
     marginTop: 2,
     marginBottom: 2,
+    // Xóa đoạn "&:focus" vì React Style mặc định không hiểu nó
   },
   button: {
     width: "100%",

@@ -3,6 +3,8 @@ import "leaflet/dist/leaflet.css";
 import { getIconByType } from "../../components/map/mapIcons";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+// --- IMPORT COMPONENT REVIEW ---
+import ServiceReview from "../../pages/services/ServiceReview";
 
 export default function ServiceDetail() {
   const { id, type } = useParams();
@@ -12,13 +14,22 @@ export default function ServiceDetail() {
   const [loading, setLoading] = useState(true);
   const [showMapModal, setShowMapModal] = useState(false);
 
+  // Hàm load lại dữ liệu service để cập nhật rating mới khi có đánh giá
+  const fetchServiceData = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/${type}s/${id}`);
+      const data = await res.json();
+      setService(data.data ?? data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (!id || !type) return;
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/${type}s/${id}`);
-        const data = await res.json();
-        setService(data.data ?? data);
+        await fetchServiceData();
 
         let endpoint =
           type === "hotel"
@@ -60,7 +71,6 @@ export default function ServiceDetail() {
   const defaultIcon = getIconByType(type || "location");
 
   return (
-    // 1. THÊM NỀN XANH NHẠT TOÀN TRANG
     <div className="bg-slate-50 min-h-screen pb-20">
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <button
@@ -70,7 +80,6 @@ export default function ServiceDetail() {
           ← Quay lại
         </button>
 
-        {/* 2. GIỮ NGUYÊN FORM: ẢNH + MAP Ở TRÊN */}
         <div className="w-full rounded-[2rem] mb-8 overflow-hidden relative shadow-md border border-white">
           <img
             src={service.image_url || "https://via.placeholder.com/800x400"}
@@ -105,7 +114,6 @@ export default function ServiceDetail() {
           </div>
         </div>
 
-        {/* 3. PHẦN NỘI DUNG BỌC TRONG CARD TRẮNG CHO NỔI TRÊN NỀN XANH */}
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
           {/* HEADER */}
           <div className="mb-8">
@@ -115,19 +123,20 @@ export default function ServiceDetail() {
             {service.address && (
               <p className="text-slate-500 font-medium">{service.address}</p>
             )}
-            {service.rating && (
-              <div className="flex items-center gap-2 mt-3">
-                <span className="bg-blue-600 text-white px-3 py-1 rounded-lg font-bold">
-                  {service.rating}
-                </span>
-                <span className="text-sm text-slate-400 font-medium">
-                  Đánh giá dịch vụ
-                </span>
-              </div>
-            )}
+
+            {/* RATING DISPLAY (Sẽ tự cập nhật khi fetchData chạy lại) */}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="bg-blue-600 text-white px-3 py-1 rounded-lg font-bold">
+                {service.rating || "0.0"}
+              </span>
+              <span className="text-sm text-slate-400 font-medium">
+                {service.rating_text || "Chưa có đánh giá"} (
+                {service.reviews_count || 0} bình luận)
+              </span>
+            </div>
           </div>
 
-          {/* GIÁ: CHỈNH THEO MẪU ẢNH (Bỏ icon túi tiền) */}
+          {/* GIÁ */}
           <div className="mb-10 pb-8 border-b border-slate-100">
             {service.is_promotion && service.discount_percent > 0 ? (
               <div className="space-y-1">
@@ -208,7 +217,7 @@ export default function ServiceDetail() {
           )}
 
           {/* ROOMS / TABLES */}
-          <div className="mt-16">
+          <div className="mt-16 pb-10 border-b border-slate-100">
             <h2 className="text-2xl font-bold mb-8 text-slate-900 border-l-4 border-blue-600 pl-4">
               {type === "hotel" ? "Danh sách phòng" : "Danh sách bàn"}
             </h2>
@@ -249,15 +258,24 @@ export default function ServiceDetail() {
               ))}
             </div>
           </div>
+
+          {/* --- PHẦN ĐÁNH GIÁ (REVIEW SECTION) --- */}
+          <div className="mt-16">
+            <ServiceReview
+              serviceId={Number(id)}
+              type={type as "hotel" | "restaurant"}
+              onReviewSuccess={fetchServiceData} // Tự động load lại rating khi đánh giá xong
+            />
+          </div>
         </div>
       </div>
 
-      {/* Modal Map (Giữ nguyên) */}
+      {/* Modal Map */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl h-[70vh] overflow-hidden">
             <button
-              className="absolute top-4 right-4 z-[60] bg-slate-900 text-white px-4 py-2 rounded-xl font-bold"
+              className="absolute top-4 right-4 z-[110] bg-slate-900 text-white px-6 py-2 rounded-xl font-bold hover:bg-black transition-all"
               onClick={() => setShowMapModal(false)}
             >
               Đóng
@@ -268,8 +286,9 @@ export default function ServiceDetail() {
               style={{ width: "100%", height: "100%" }}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {/* MapAutoFix removed: not defined. If map display issues occur in modal, consider implementing a fix. */}
               <Marker position={[lat, lng]} icon={defaultIcon}>
-                <Popup>{service.name}</Popup>
+                <Popup className="font-bold">{service.name}</Popup>
               </Marker>
             </MapContainer>
           </div>

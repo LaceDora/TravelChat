@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
+    private function bookingRelations(): array
+    {
+        return [
+            'tour:id,name',
+            'hotel:id,name',
+            'restaurant:id,name',
+        ];
+    }
+
     public function store(Request $request)
     {
         try {
@@ -17,7 +26,7 @@ class BookingController extends Controller
                 return response()->json(['message' => 'Unauthenticated', 'debug' => 'No user_id'], 401);
             }
 
-            $booking = Booking::create([
+            $payload = [
                 'user_id' => $userId,
                 'booking_type' => $request->booking_type,
                 'target_id' => $request->target_id,
@@ -26,9 +35,37 @@ class BookingController extends Controller
                 'booking_date' => $request->booking_date,
                 'quantity' => $request->quantity,
                 'total_amount' => $request->total_amount,
+                'note' => $request->note,
+            ];
+
+            $existingPendingBooking = Booking::query()
+                ->where('user_id', $userId)
+                ->where('booking_type', $request->booking_type)
+                ->where('target_id', $request->target_id)
+                ->where('status', 'pending')
+                ->when(
+                    $request->filled('booking_date'),
+                    fn ($query) => $query->whereDate('booking_date', $request->booking_date),
+                    fn ($query) => $query->whereNull('booking_date')
+                )
+                ->latest('id')
+                ->first();
+
+            if ($existingPendingBooking) {
+                $existingPendingBooking->fill($payload);
+                $existingPendingBooking->status = 'pending';
+                $existingPendingBooking->save();
+
+                return response()->json(
+                    $existingPendingBooking->load($this->bookingRelations())
+                );
+            }
+
+            $booking = Booking::create($payload + [
+                'status' => 'pending',
             ]);
 
-            return response()->json($booking);
+            return response()->json($booking->load($this->bookingRelations()));
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
@@ -43,7 +80,10 @@ class BookingController extends Controller
         }
 
         return response()->json(
-            Booking::where('user_id', $userId)->get()
+            Booking::with($this->bookingRelations())
+                ->where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->get()
         );
     }
 
@@ -55,7 +95,10 @@ class BookingController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        $booking = Booking::where('id', $id)->where('user_id', $userId)->first();
+        $booking = Booking::with($this->bookingRelations())
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->first();
 
         if (!$booking) {
             return response()->json(['message' => 'Booking not found'], 404);
@@ -72,7 +115,10 @@ class BookingController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        $booking = Booking::where('id', $id)->where('user_id', $userId)->first();
+        $booking = Booking::with($this->bookingRelations())
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->first();
 
         if (!$booking) {
             return response()->json(['message' => 'Booking not found'], 404);
@@ -88,6 +134,9 @@ class BookingController extends Controller
 
         $booking->update(['status' => 'cancelled']);
 
-        return response()->json(['message' => 'Đã hủy booking', 'booking' => $booking]);
+        return response()->json([
+            'message' => 'Đã hủy booking',
+            'booking' => $booking->fresh()->load($this->bookingRelations()),
+        ]);
     }
 }

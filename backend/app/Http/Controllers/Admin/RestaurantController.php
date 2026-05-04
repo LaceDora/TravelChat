@@ -36,7 +36,6 @@ class RestaurantController extends Controller
 
             'rating' => 'nullable|numeric|min:0|max:10',
             'reviews_count' => 'nullable|integer|min:0',
-            'rating_text' => 'nullable|string|max:50',
 
             'min_price' => 'nullable|numeric|min:0',
             'max_price' => 'nullable|numeric|min:0',
@@ -79,7 +78,6 @@ class RestaurantController extends Controller
 
             'rating' => 'nullable|numeric|min:0|max:10',
             'reviews_count' => 'nullable|integer|min:0',
-            'rating_text' => 'nullable|string|max:50',
 
             'min_price' => 'nullable|numeric|min:0',
             'max_price' => 'nullable|numeric|min:0',

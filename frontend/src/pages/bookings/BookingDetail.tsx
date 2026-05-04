@@ -9,6 +9,20 @@ export default function BookingDetail() {
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+
+  const formatDateTime = (value?: string) => {
+    if (!value) return "-";
+
+    return new Date(value).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -22,12 +36,21 @@ export default function BookingDetail() {
   const handlePayment = () => {
     if (!booking) return;
 
-    // Chuyển đến trang thanh toán
-    navigate(
-      `/payment?bookingId=${booking.id}&tourId=${booking.target_id}&price=${
-        booking.total_amount || 0
-      }&people=${booking.quantity || 1}&date=${booking.booking_date}`,
-    );
+    const params = new URLSearchParams({
+      bookingId: String(booking.id),
+      price: String(booking.total_amount || 0),
+      people: String(booking.quantity || 1),
+      date: String(booking.booking_date || ""),
+    });
+
+    if (booking.booking_type === "tour") {
+      params.set("tourId", String(booking.target_id || ""));
+    } else {
+      params.set("serviceType", String(booking.booking_type || ""));
+      params.set("serviceId", String(booking.target_id || ""));
+    }
+
+    navigate(`/payment?${params.toString()}`);
   };
 
   const handleCancel = async () => {
@@ -38,6 +61,7 @@ export default function BookingDetail() {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     try {
+      setCancelling(true);
       const data = await apiPost<any>(
         `/bookings/${id}/cancel?user_id=${user.id}`,
         {},
@@ -46,6 +70,8 @@ export default function BookingDetail() {
       setBooking(data.booking || data);
     } catch (error: any) {
       toast.error("Lỗi: " + error.message);
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -78,6 +104,14 @@ export default function BookingDetail() {
     cancelled: "Đã hủy",
   };
 
+  const serviceName =
+    booking.tour?.name ||
+    booking.hotel?.name ||
+    booking.restaurant?.name ||
+    booking.item_name ||
+    booking.title ||
+    `Dịch vụ #${booking.target_id}`;
+
   return (
     <div className="max-w-2xl mx-auto py-12">
       {/* Header */}
@@ -86,6 +120,9 @@ export default function BookingDetail() {
           Chi tiết booking
         </h1>
         <p className="text-gray-600">ID: {booking.id}</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Thời gian đặt thực tế: {formatDateTime(booking.created_at)}
+        </p>
       </div>
 
       {/* Main Card */}
@@ -114,6 +151,13 @@ export default function BookingDetail() {
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                   {booking.booking_type}
                 </span>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase font-semibold">
+                  Tên dịch vụ
+                </p>
+                <p className="text-lg font-bold text-gray-800">{serviceName}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-y-6 gap-x-4">
@@ -181,6 +225,13 @@ export default function BookingDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="space-y-4">
               <div>
+                <p className="text-gray-600 text-sm">Tên dịch vụ</p>
+                <p className="text-lg font-semibold text-gray-800 capitalize">
+                  {serviceName}
+                </p>
+              </div>
+
+              <div>
                 <p className="text-gray-600 text-sm">Loại đặt</p>
                 <p className="text-lg font-semibold text-gray-800 capitalize">
                   {booking.booking_type}
@@ -208,9 +259,7 @@ export default function BookingDetail() {
 
             <div className="space-y-4">
               <div>
-                <p className="text-gray-600 text-sm">
-                  Mã tham chiếu (Target ID)
-                </p>
+                <p className="text-gray-600 text-sm">Mã dịch vụ</p>
                 <p className="text-lg font-semibold text-gray-800">
                   {booking.target_id}
                 </p>
@@ -219,7 +268,14 @@ export default function BookingDetail() {
               <div>
                 <p className="text-gray-600 text-sm">Thời gian tạo HĐ</p>
                 <p className="text-lg font-semibold text-gray-800">
-                  {new Date(booking.created_at).toLocaleString("vi-VN")}
+                  {formatDateTime(booking.created_at)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-600 text-sm">Ngày sử dụng dịch vụ</p>
+                <p className="text-lg font-semibold text-gray-800">
+                  {formatDateTime(booking.booking_date)}
                 </p>
               </div>
             </div>
@@ -262,9 +318,14 @@ export default function BookingDetail() {
 
               <button
                 onClick={handleCancel}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition"
+                disabled={cancelling}
+                className={`flex-1 text-white font-semibold py-3 rounded-lg transition ${
+                  cancelling
+                    ? "bg-red-300 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
               >
-                ❌ Hủy booking
+                {cancelling ? "Đang hủy booking..." : "❌ Hủy booking"}
               </button>
             </>
           )}

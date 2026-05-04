@@ -6,43 +6,46 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
 
-            // Basic info
+            // Thông tin cơ bản & Đăng nhập
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('password');
+            $table->string('google_id')->nullable()->unique(); 
+            $table->string('password')->nullable();
 
-            // Profile info
+            // Thông tin hồ sơ (Profile)
             $table->string('phone')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('gender')->nullable(); 
-            // male | female | other
-
+            $table->string('gender')->nullable(); // male | female | other
             $table->string('passport_number')->nullable()->unique();
 
-            // Nationality
+            // Quốc tịch (Liên kết bảng countries)
             $table->foreignId('country_id')
                 ->nullable()
                 ->constrained('countries')
                 ->nullOnDelete();
 
-            // Role & avatar
+            // Phân quyền & Ảnh đại diện
             $table->string('role')->default('user');
             $table->string('avatar_url')->nullable();
 
-            // Favorite locations (❤️)
+            // Danh sách địa điểm yêu thích (Lưu dạng JSON)
             $table->json('favorite_location_ids')->nullable();
-            // Ví dụ: [1, 5, 12]
 
             $table->timestamps();
         });
-
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -52,17 +52,20 @@ export default function RoomCreate() {
   };
 
   return (
-    <div className="p-6 max-w-xl">
-      <h1 className="text-2xl font-bold mb-6">Create Room</h1>
+    <div className="p-6 max-w-xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Create Room</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-5"
+      >
         {/* ROOM NAME */}
         <input
           name="name"
           placeholder="Room Name (Single, Double, Deluxe...)"
           value={form.name}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
         />
 
@@ -72,7 +75,7 @@ export default function RoomCreate() {
           placeholder="Price per night"
           value={form.price_per_night}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
         />
 
@@ -82,7 +85,7 @@ export default function RoomCreate() {
           placeholder="Capacity (people)"
           value={form.capacity}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
         {/* QUANTITY */}
@@ -91,7 +94,7 @@ export default function RoomCreate() {
           placeholder="Number of rooms"
           value={form.quantity}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
         {/* DESCRIPTION */}
@@ -100,13 +103,13 @@ export default function RoomCreate() {
           placeholder="Description"
           value={form.description}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
 
         <div className="flex gap-3">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20"
           >
             Create
           </button>
@@ -114,7 +117,7 @@ export default function RoomCreate() {
           <button
             type="button"
             onClick={() => navigate(`/admin/hotels/${hotelId}/rooms`)}
-            className="bg-gray-500 text-white px-4 py-2 rounded"
+            className="bg-gray-100 text-gray-600 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>

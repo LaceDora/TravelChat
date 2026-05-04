@@ -15,6 +15,7 @@ class TourScheduleController extends Controller
     {
         $schedules = TourSchedule::where('tour_id', $tourId)
             ->orderBy('day_number')
+            ->orderBy('id') // Sắp xếp thêm theo ID để tránh trùng lặp thứ tự
             ->get();
 
         return response()->json($schedules);
@@ -36,17 +37,18 @@ class TourScheduleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tour_id' => 'required|exists:tours,id',
+            'tour_id'    => 'required|exists:tours,id',
             'day_number' => 'required|integer|min:1',
-            'title' => 'required|string|max:255',
-            'activity' => 'nullable|string'
+            'time'       => 'nullable|string|max:255', // THÊM DÒNG NÀY ĐỂ NHẬN GIỜ/SÁNG/CHIỀU
+            'title'      => 'required|string|max:255',
+            'activity'   => 'nullable|string'
         ]);
 
         $schedule = TourSchedule::create($validated);
 
         return response()->json([
-            'message' => 'Schedule created successfully',
-            'data' => $schedule
+            'message' => 'Lịch trình đã được tạo thành công',
+            'data'    => $schedule
         ], 201);
     }
 
@@ -59,15 +61,16 @@ class TourScheduleController extends Controller
 
         $validated = $request->validate([
             'day_number' => 'required|integer|min:1',
-            'title' => 'required|string|max:255',
-            'activity' => 'nullable|string'
+            'time'       => 'nullable|string|max:255', // THÊM DÒNG NÀY ĐỂ CẬP NHẬT GIỜ/SÁNG/CHIỀU
+            'title'      => 'required|string|max:255',
+            'activity'   => 'nullable|string'
         ]);
 
         $schedule->update($validated);
 
         return response()->json([
-            'message' => 'Schedule updated successfully',
-            'data' => $schedule
+            'message' => 'Lịch trình đã được cập nhật thành công',
+            'data'    => $schedule
         ]);
     }
 
@@ -77,11 +80,10 @@ class TourScheduleController extends Controller
     public function destroy($id)
     {
         $schedule = TourSchedule::findOrFail($id);
-
         $schedule->delete();
 
         return response()->json([
-            'message' => 'Schedule deleted successfully'
+            'message' => 'Lịch trình đã được xóa thành công'
         ]);
     }
 }

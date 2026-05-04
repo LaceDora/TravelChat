@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreignId('location_id')->constrained('locations')->onDelete('cascade');
 
             $table->string('name');                      // Tên tour
-            $table->string('slug')->unique()->nullable(); // SEO URL (duy nhất)
             $table->integer('days')->nullable();         // Số ngày (VD: 5)
 
             $table->string('transport')->nullable();     // Phương tiện

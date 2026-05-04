@@ -23,17 +23,14 @@ async function request(url: string, options: RequestInit = {}) {
 const TourService = {
   /* ===================== TOURS ===================== */
 
-  // GET ALL TOURS
   async getTours() {
     return request(`${API_URL}/tours`);
   },
 
-  // GET TOUR BY ID
   async getTour(id: number) {
     return request(`${API_URL}/tours/${id}`);
   },
 
-  // CREATE TOUR
   async createTour(data: any) {
     return request(`${API_URL}/tours`, {
       method: "POST",
@@ -41,7 +38,6 @@ const TourService = {
     });
   },
 
-  // UPDATE TOUR
   async updateTour(id: number, data: any) {
     return request(`${API_URL}/tours/${id}`, {
       method: "PUT",
@@ -49,7 +45,6 @@ const TourService = {
     });
   },
 
-  // DELETE TOUR
   async deleteTour(id: number) {
     return request(`${API_URL}/tours/${id}`, {
       method: "DELETE",
@@ -58,17 +53,14 @@ const TourService = {
 
   /* ===================== TOUR SCHEDULES ===================== */
 
-  // GET SCHEDULES BY TOUR
   async getSchedulesByTour(tourId: number) {
     return request(`${API_URL}/tours/${tourId}/schedules`);
   },
 
-  // GET SCHEDULE BY ID
   async getSchedule(id: number) {
     return request(`${API_URL}/tour-schedules/${id}`);
   },
 
-  // CREATE SCHEDULE
   async createSchedule(data: any) {
     return request(`${API_URL}/tour-schedules`, {
       method: "POST",
@@ -76,7 +68,6 @@ const TourService = {
     });
   },
 
-  // UPDATE SCHEDULE
   async updateSchedule(id: number, data: any) {
     return request(`${API_URL}/tour-schedules/${id}`, {
       method: "PUT",
@@ -84,9 +75,43 @@ const TourService = {
     });
   },
 
-  // DELETE SCHEDULE
   async deleteSchedule(id: number) {
     return request(`${API_URL}/tour-schedules/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  /* ===================== TOUR DEPARTURES ===================== */
+
+  // GET ALL DEPARTURES BY TOUR
+  async getDeparturesByTour(tourId: number) {
+    return request(`${API_URL}/tours/${tourId}/departures`);
+  },
+
+  // GET ONE DEPARTURE
+  async getDeparture(id: number) {
+    return request(`${API_URL}/tour-departures/${id}`);
+  },
+
+  // CREATE DEPARTURE
+  async createDeparture(data: any) {
+    return request(`${API_URL}/tour-departures`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  // UPDATE DEPARTURE
+  async updateDeparture(id: number, data: any) {
+    return request(`${API_URL}/tour-departures/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  // DELETE DEPARTURE
+  async deleteDeparture(id: number) {
+    return request(`${API_URL}/tour-departures/${id}`, {
       method: "DELETE",
     });
   },

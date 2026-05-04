@@ -15,6 +15,10 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { method = "GET", body, headers = {}, isFormData = false } = options;
 
+  // 1. Lấy Token từ LocalStorage
+  // Lưu ý: Đảm bảo tên 'token' này trùng với tên bạn dùng khi localStorage.setItem lúc Login
+  const token = localStorage.getItem("token");
+
   // Loại bỏ '/api' dư thừa ở đầu endpoint nếu có
   let cleanEndpoint = endpoint;
   if (cleanEndpoint.startsWith("/api/")) {
@@ -25,15 +29,19 @@ export async function apiClient<T>(
     method,
     headers: {
       Accept: "application/json",
+      // 2. Tự động gắn Token vào Header Authorization
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
-    // Required for Laravel Sanctum/Session
+    // Credentials 'include' quan trọng nếu bạn dùng Laravel Sanctum (Cookies)
     credentials: "include",
   };
 
+  // 3. Xử lý Body của Request
   if (body) {
     if (isFormData) {
       config.body = body;
+      // Khi gửi FormData, Fetch tự động thiết lập Content-Type với boundary, không nên ghi đè
     } else {
       config.headers = {
         ...config.headers,
@@ -44,17 +52,25 @@ export async function apiClient<T>(
   }
 
   try {
-    const res = await fetch(`${API_BASE}${cleanEndpoint}`, config);
+    const response = await fetch(`${API_BASE}${cleanEndpoint}`, config);
 
-    // Xử lý response no-content
-    if (res.status === 204) {
+    // Xử lý lỗi xác thực (Token hết hạn hoặc sai)
+    if (response.status === 401) {
+      console.error("Lỗi 401: Phiên đăng nhập đã hết hạn hoặc không có quyền.");
+      // Tùy chọn: Xóa token cũ và chuyển hướng về trang login
+      // localStorage.removeItem("token");
+      // window.location.href = "/login";
+    }
+
+    // Xử lý response no-content (204)
+    if (response.status === 204) {
       return {} as T;
     }
 
-    const data = await res.json();
+    const data = await response.json();
 
-    if (!res.ok) {
-      // Trường hợp Laravel trả về mảng errors
+    if (!response.ok) {
+      // Xử lý các thông báo lỗi từ Laravel (trường hợp validation hoặc lỗi logic)
       const errorMessage =
         data.message ||
         (data.errors && Object.values(data.errors).flat()[0]) ||
@@ -69,7 +85,10 @@ export async function apiClient<T>(
   }
 }
 
-// Helpers
+/**
+ * Các hàm Helpers để gọi API nhanh hơn
+ */
+
 export function apiGet<T>(endpoint: string, headers?: Record<string, string>) {
   return apiClient<T>(endpoint, { method: "GET", headers });
 }
@@ -84,4 +103,8 @@ export function apiPut<T>(endpoint: string, body: any, isFormData = false) {
 
 export function apiDelete<T>(endpoint: string) {
   return apiClient<T>(endpoint, { method: "DELETE" });
+}
+
+export function apiPatch<T>(endpoint: string, body: any, isFormData = false) {
+  return apiClient<T>(endpoint, { method: "PATCH", body, isFormData });
 }

@@ -39,7 +39,7 @@ class RestaurantTableController extends Controller
             'quantity' => 'nullable|integer|min:1',
             'price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
-            'dynamic_price' => 'nullable|array',
+            'dynamic_price' => 'nullable|numeric|min:0',
             'note' => 'nullable|string'
         ]);
 
@@ -67,7 +67,7 @@ class RestaurantTableController extends Controller
             'quantity' => 'sometimes|integer|min:1',
             'price' => 'nullable|numeric|min:0',
             'discount_percent' => 'nullable|integer|min:0|max:100',
-            'dynamic_price' => 'nullable|array',
+            'dynamic_price' => 'nullable|numeric|min:0',
             'note' => 'nullable|string'
         ]);
 

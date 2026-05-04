@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; // Import Link để điều hướng
-import { Search, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, MapPin, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 
 interface Country {
   id: number;
@@ -24,6 +24,7 @@ export default function LocationPage() {
   const [randomSeed, setRandomSeed] = useState(Date.now());
   const [countries, setCountries] = useState<Country[]>([]);
   const [allLocations, setAllLocations] = useState<Location[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [countryId, setCountryId] = useState<number | "all">("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -42,6 +43,11 @@ export default function LocationPage() {
 
   /* Load dữ liệu */
   useEffect(() => {
+    const savedFavorites: number[] = JSON.parse(
+      localStorage.getItem("favorite_locations") || "[]",
+    );
+    setFavoriteIds(savedFavorites);
+
     fetch("http://127.0.0.1:8000/api/countries")
       .then((res) => res.json())
       .then(setCountries);
@@ -50,6 +56,23 @@ export default function LocationPage() {
       .then((res) => res.json())
       .then(setAllLocations);
   }, []);
+
+  const toggleFavorite = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    locationId: number,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    setFavoriteIds((prev) => {
+      const next = prev.includes(locationId)
+        ? prev.filter((id) => id !== locationId)
+        : [...prev, locationId];
+
+      localStorage.setItem("favorite_locations", JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     setPage(1);
@@ -168,6 +191,26 @@ export default function LocationPage() {
                   to={`/locations/${item.id}`}
                   className="group relative block rounded-[2rem] overflow-hidden bg-white shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 aspect-[4/5] w-full"
                 >
+                  <button
+                    type="button"
+                    onClick={(event) => toggleFavorite(event, item.id)}
+                    aria-label={
+                      favoriteIds.includes(item.id)
+                        ? "Bỏ khỏi yêu thích"
+                        : "Thêm vào yêu thích"
+                    }
+                    className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-lg backdrop-blur-sm transition hover:scale-105"
+                  >
+                    <Heart
+                      className={
+                        favoriteIds.includes(item.id)
+                          ? "fill-rose-500 text-rose-500"
+                          : "text-slate-500"
+                      }
+                      size={20}
+                    />
+                  </button>
+
                   {/* Ảnh Nền */}
                   <div className="absolute inset-0 w-full h-full">
                     <img

@@ -1,13 +1,44 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiGet } from "../../service/api";
+import { apiGet, apiPost } from "../../service/api";
 
 export default function BookingHistory() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const pageSize = 5;
+
+  const formatDateTime = (value?: string) => {
+    if (!value) return "-";
+
+    return new Date(value).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleContinuePayment = (booking: any) => {
+    const params = new URLSearchParams({
+      bookingId: String(booking.id),
+      price: String(booking.total_amount ?? 0),
+      people: String(booking.quantity ?? 1),
+      date: String(booking.booking_date ?? ""),
+    });
+
+    if (booking.booking_type === "tour") {
+      params.set("tourId", String(booking.target_id ?? ""));
+    } else {
+      params.set("serviceType", String(booking.booking_type ?? ""));
+      params.set("serviceId", String(booking.target_id ?? ""));
+    }
+
+    navigate(`/payment?${params.toString()}`);
+  };
 
   const statusColors: any = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -32,26 +63,21 @@ export default function BookingHistory() {
 
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    const res = await fetch(
-      `/api/bookings/${bookingId}/cancel?user_id=${user.id}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      },
-    );
+    try {
+      setCancellingId(bookingId);
+      const data = await apiPost<any>(
+        `/bookings/${bookingId}/cancel?user_id=${user.id}`,
+        {},
+      );
 
-    if (res.ok) {
-      // Cập nhật state
-      setBookings(
-        bookings.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b,
-        ),
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? data.booking || b : b)),
       );
       alert("Đã hủy booking thành công");
-    } else {
-      const data = await res.json();
-      alert("Lỗi: " + data.message);
+    } catch (error: any) {
+      alert("Lỗi: " + error.message);
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -97,13 +123,10 @@ export default function BookingHistory() {
                     {b.tour?.name || b.title || b.item_name || b.booking_type}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {b.tour?.departures?.[0]?.departure_date
-                      ? new Date(
-                          b.tour.departures[0].departure_date,
-                        ).toLocaleString()
-                      : new Date(
-                          b.booking_date || b.date || b.created_at,
-                        ).toLocaleString()}
+                    Ngày sử dụng: {formatDateTime(b.booking_date || b.date)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Đặt lúc: {formatDateTime(b.created_at)}
                   </p>
                   <p className="text-sm text-gray-600">
                     Số lượng: {b.quantity ?? b.people ?? "-"}
@@ -122,6 +145,15 @@ export default function BookingHistory() {
                     {statusLabels[b.status] || b.status}
                   </span>
                   <div className="flex gap-2 mt-2">
+                    {b.status === "pending" && (
+                      <button
+                        onClick={() => handleContinuePayment(b)}
+                        className="flex-1 px-3 py-1 rounded text-sm bg-blue-600 text-white hover:bg-blue-700"
+                        disabled={cancellingId === b.id}
+                      >
+                        Thanh toán
+                      </button>
+                    )}
                     <button
                       onClick={() => navigate(`/bookings/${b.id}`)}
                       className="flex-1 px-3 py-1 border rounded text-sm hover:bg-blue-50"
@@ -131,9 +163,14 @@ export default function BookingHistory() {
                     {b.status === "pending" && (
                       <button
                         onClick={(e) => handleCancel(b.id, e)}
-                        className="flex-1 px-3 py-1 border border-red-300 text-red-600 rounded text-sm hover:bg-red-50"
+                        disabled={cancellingId === b.id}
+                        className={`flex-1 px-3 py-1 border rounded text-sm ${
+                          cancellingId === b.id
+                            ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                            : "border-red-300 text-red-600 hover:bg-red-50"
+                        }`}
                       >
-                        Hủy
+                        {cancellingId === b.id ? "Đang hủy..." : "Hủy"}
                       </button>
                     )}
                   </div>

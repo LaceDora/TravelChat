@@ -46,6 +46,11 @@ import TourScheduleList from "../pages/tours/TourScheduleList";
 import TourScheduleCreate from "../pages/tours/TourScheduleCreate";
 import TourScheduleEdit from "../pages/tours/TourScheduleEdit";
 
+// TOUR DEPARTURES
+import TourDepartureList from "../pages/tours/TourDeparturesList";
+import TourDepartureCreate from "../pages/tours/TourDeparturesCreate";
+import TourDepartureEdit from "../pages/tours/TourDeparturesEdit";
+
 // BLOGS
 import BlogList from "../pages/blogs/BlogList";
 import BlogCreate from "../pages/blogs/BlogCreate";
@@ -54,6 +59,9 @@ import BlogEdit from "../pages/blogs/BlogEdit";
 // Bookings
 import BookingList from "../pages/bookings/BookingList";
 import BookingDetail from "../pages/bookings/BookingDetail";
+
+// Reviews
+import ReviewList from "../pages/reviews/ReviewList";
 
 const AdminRoutes = () => {
   return (
@@ -70,6 +78,9 @@ const AdminRoutes = () => {
         <Route path="users" element={<UserList />} />
         <Route path="users/create" element={<UserCreate />} />
         <Route path="users/edit/:id" element={<UserEdit />} />
+
+        {/* REVIEWS */}
+        <Route path="reviews" element={<ReviewList />} />
 
         {/* LOCATIONS */}
         <Route path="locations" element={<LocationsList />} />
@@ -114,6 +125,17 @@ const AdminRoutes = () => {
         <Route path="tours" element={<TourList />} />
         <Route path="tours/create" element={<TourCreate />} />
         <Route path="tours/edit/:id" element={<TourEdit />} />
+
+        {/* TOUR DEPARTURES */}
+        <Route path="tours/:id/departures" element={<TourDepartureList />} />
+        <Route
+          path="tours/:id/departures/create"
+          element={<TourDepartureCreate />}
+        />
+        <Route
+          path="tours/:id/departures/edit/:departureId"
+          element={<TourDepartureEdit />}
+        />
 
         {/* TOUR SCHEDULES */}
         <Route path="tours/:id/schedules" element={<TourScheduleList />} />

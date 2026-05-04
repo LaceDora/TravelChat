@@ -22,7 +22,8 @@ use App\Http\Controllers\Api\{
     PaymentController,
     UserMarkerController,
     ProfileController,
-    ServiceBookingController
+    ServiceBookingController,
+    ReviewController // <--- Thêm ReviewController vào đây
 };
 
 use App\Http\Controllers\Admin\{
@@ -34,7 +35,8 @@ use App\Http\Controllers\Admin\{
     RestaurantTableController as AdminRestaurantTableController,
     TourController as AdminTourController,
     BlogController as AdminBlogController,
-    TourScheduleController as AdminTourScheduleController
+    TourScheduleController as AdminTourScheduleController,
+    TourDeparturesController
 };
 
 
@@ -56,11 +58,9 @@ Route::post('/logout',   [AuthController::class, 'logout']);
 */
 
 Route::prefix('admin')->group(function () {
-
     Route::post('/login',  [AdminAuthController::class, 'login']);
     Route::post('/logout', [AdminAuthController::class, 'logout']);
     Route::get('/me',      [AdminAuthController::class, 'me']);
-
 });
 
 
@@ -72,78 +72,70 @@ Route::prefix('admin')->group(function () {
 
 Route::prefix('admin')->group(function () {
 
+    /* USERS */
     Route::apiResource('users', AdminUserController::class);
 
+    /* LOCATIONS */
     Route::apiResource('locations', AdminLocationController::class);
 
+    /* HOTELS */
     Route::apiResource('hotels', AdminHotelController::class);
 
+    /* RESTAURANTS */
     Route::apiResource('restaurants', AdminRestaurantController::class);
 
+    /* TOURS */
     Route::apiResource('tours', AdminTourController::class);
 
+    /* BLOGS */
     Route::apiResource('blogs', AdminBlogController::class);
 
-    // BOOKINGS
-    Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index']);
-    Route::get('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'show']);
-    Route::patch('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'update']);
+    /* ================= TOUR SCHEDULES ================= */
+    Route::get('tours/{tour}/schedules', [AdminTourScheduleController::class, 'byTour']);
+    Route::get('tour-schedules/{id}', [AdminTourScheduleController::class, 'show']);
+    Route::post('tour-schedules', [AdminTourScheduleController::class, 'store']);
+    Route::put('tour-schedules/{id}', [AdminTourScheduleController::class, 'update']);
+    Route::delete('tour-schedules/{id}', [AdminTourScheduleController::class, 'destroy']);
 
+    /* ================= TOUR DEPARTURES ================= */
+    Route::apiResource('tour-departures', TourDeparturesController::class);
 
-    /*
-    |--------------------------------------------------------------------------
-    | HOTEL ROOMS
-    |--------------------------------------------------------------------------
-    */
+    Route::get('tours/{tour}/departures', [
+        TourDeparturesController::class,
+        'byTour'
+    ]);
 
+    /* ================= HOTEL ROOMS ================= */
     Route::get('hotels/{hotel}/rooms', [AdminHotelRoomController::class, 'byHotel']);
-
     Route::get('hotel-rooms/{id}', [AdminHotelRoomController::class, 'show']);
     Route::post('hotel-rooms', [AdminHotelRoomController::class, 'store']);
     Route::put('hotel-rooms/{id}', [AdminHotelRoomController::class, 'update']);
     Route::delete('hotel-rooms/{id}', [AdminHotelRoomController::class, 'destroy']);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESTAURANT TABLES
-    |--------------------------------------------------------------------------
-    */
-
+    /* ================= RESTAURANT TABLES ================= */
     Route::get('restaurants/{restaurant}/tables', [AdminRestaurantTableController::class, 'byRestaurant']);
-
     Route::get('restaurant-tables/{id}', [AdminRestaurantTableController::class, 'show']);
     Route::post('restaurant-tables', [AdminRestaurantTableController::class, 'store']);
     Route::put('restaurant-tables/{id}', [AdminRestaurantTableController::class, 'update']);
     Route::delete('restaurant-tables/{id}', [AdminRestaurantTableController::class, 'destroy']);
 
-    /*
-|--------------------------------------------------------------------------
-| TOUR SCHEDULES
-|--------------------------------------------------------------------------
-*/
+    /* ================= BOOKINGS ================= */
+    Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index']);
+    Route::get('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'show']);
+    Route::patch('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'update']);
+    Route::delete('bookings/{id}', [App\Http\Controllers\Admin\BookingController::class, 'destroy']);
 
-Route::get('tours/{tour}/schedules', [AdminTourScheduleController::class, 'byTour']);
+    /* ================= NOTIFICATIONS ================= */
+    Route::get('notifications', [App\Http\Controllers\Admin\NotificationController::class, 'index']);
+    Route::patch('notifications/read-all', [App\Http\Controllers\Admin\NotificationController::class, 'markAllRead']);
 
-Route::get('tour-schedules/{id}', [AdminTourScheduleController::class, 'show']);
-Route::post('tour-schedules', [AdminTourScheduleController::class, 'store']);
-Route::put('tour-schedules/{id}', [AdminTourScheduleController::class, 'update']);
-Route::delete('tour-schedules/{id}', [AdminTourScheduleController::class, 'destroy']);
-
-
+    /* ================= REVIEWS ================= */
+    Route::get('reviews', [App\Http\Controllers\Admin\ReviewController::class, 'index']);
+    Route::patch('reviews/{id}/approve', [App\Http\Controllers\Admin\ReviewController::class, 'approve']);
+    Route::patch('reviews/{id}/reject', [App\Http\Controllers\Admin\ReviewController::class, 'reject']);
+    Route::delete('reviews/{id}', [App\Http\Controllers\Admin\ReviewController::class, 'destroy']);
 });
-/*
-|--------------------------------------------------------------------------
-| TOUR SCHEDULES
-|--------------------------------------------------------------------------
-*/
 
-Route::get('tours/{tour}/schedules', [AdminTourScheduleController::class, 'byTour']);
-
-Route::get('tour-schedules/{id}', [AdminTourScheduleController::class, 'show']);
-Route::post('tour-schedules', [AdminTourScheduleController::class, 'store']);
-Route::put('tour-schedules/{id}', [AdminTourScheduleController::class, 'update']);
-Route::delete('tour-schedules/{id}', [AdminTourScheduleController::class, 'destroy']);
 
 /*
 |--------------------------------------------------------------------------
@@ -169,6 +161,9 @@ Route::apiResource('tours', TourController::class)
 Route::apiResource('blogs', BlogController::class)
     ->only(['index','show']);
 
+/* REVIEWS PUBLIC */
+Route::get('/reviews', [ReviewController::class, 'index']); // Xem đánh giá của hotel/tour/restaurant
+
 
 /*
 |--------------------------------------------------------------------------
@@ -182,7 +177,7 @@ Route::get('/restaurants/{id}/tables', [RestaurantController::class, 'tables']);
 
 /*
 |--------------------------------------------------------------------------
-| BOOKINGS
+| BOOKINGS (PUBLIC/SEMIAUTH)
 |--------------------------------------------------------------------------
 */
 
@@ -198,10 +193,14 @@ Route::get('/my-bookings', [BookingController::class, 'myBookings']);
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth.session')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/users/{id}', [ProfileController::class, 'show']);
     Route::put('/users/{id}', [ProfileController::class, 'update']);
+
+    /* REVIEWS AUTH */
+    Route::get('/reviews/can-review', [ReviewController::class, 'canReview']); 
+    Route::post('/reviews', [ReviewController::class, 'store']); 
 
     Route::get('/service/options', [ServiceBookingController::class, 'getOptions']);
     Route::post('/service/book',   [ServiceBookingController::class, 'store']);
@@ -212,6 +211,8 @@ Route::middleware('auth.session')->group(function () {
     Route::get('/markers',  [UserMarkerController::class, 'index']);
     Route::post('/markers', [UserMarkerController::class, 'store']);
 
+    // Logout cũng nên nằm trong này để bảo mật
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 
